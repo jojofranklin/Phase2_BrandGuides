@@ -36,6 +36,13 @@ yarn-error.log*
 # vercel
 .vercel
 
+# claude code
+.claude/
+
+# screenshots / docs dropped in root
+*.png
+*.pdf
+
 # typescript
 *.tsbuildinfo
 next-env.d.ts
