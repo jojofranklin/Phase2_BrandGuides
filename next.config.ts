@@ -3,6 +3,9 @@ import type { NextConfig } from "next";
 const nextConfig: NextConfig = {
   output: "export",
   basePath: "/Phase2_BrandGuides",
+  env: {
+    NEXT_PUBLIC_BASE_PATH: "/Phase2_BrandGuides",
+  },
   images: {
     unoptimized: true,
   },

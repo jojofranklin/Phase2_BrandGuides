@@ -107,83 +107,119 @@ export function RolodexBuilder() {
   const translateY = -(step * WORD_H);
   const viewportH = VISIBLE * WORD_H;
 
-  // GIF export
-  const exportGif = useCallback(async () => {
+  // Smooth easing for slide transitions
+  const easeInOutCubic = (t: number): number =>
+    t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
+
+  // WebM video export via MediaRecorder
+  const exportVideo = useCallback(async () => {
     if (!previewRef.current || !trackRef.current || words.length < 2) return;
     setIsExporting(true);
     setIsPlaying(false);
 
     try {
       const { toPng } = await import("html-to-image");
-      const GifJs = (await import("gif.js")).default;
-
       const el = previewRef.current;
       const track = trackRef.current;
 
-      const gif = new GifJs({
-        workers: 2,
-        quality: 10,
-        width: el.offsetWidth * 2,
-        height: el.offsetHeight * 2,
-        workerScript: "/gif.worker.js",
-      });
+      // Strip rounded corners + border for clean export
+      const origBorderRadius = el.style.borderRadius;
+      const origBorder = el.style.border;
+      el.style.borderRadius = "0";
+      el.style.border = "none";
 
-      // Save original styles
+      const w = el.offsetWidth * 2;
+      const h = el.offsetHeight * 2;
+
+      // Save original track styles
       const origTransition = track.style.transition;
       const origTransform = track.style.transform;
       track.style.transition = "none";
 
-      const framesPerWord = 10; // 7 hold + 3 slide
-      const holdFrames = 7;
+      // --- Phase 1: Pre-render all frames ---
+      const fps = 30;
+      const slideFrameCount = Math.round((TRANSITION_MS / 1000) * fps); // ~12 frames
 
-      for (let w = 0; w < words.length; w++) {
-        for (let f = 0; f < framesPerWord; f++) {
-          let ty: number;
-          if (f < holdFrames) {
-            // Hold on current word
-            ty = -(w * WORD_H);
-          } else {
-            // Slide to next word
-            const t = (f - holdFrames) / (framesPerWord - holdFrames);
-            ty = -(w * WORD_H) - t * WORD_H;
-          }
+      type Frame = { dataUrl: string; durationMs: number };
+      const frames: Frame[] = [];
+
+      const raf = () =>
+        new Promise<void>((resolve) =>
+          requestAnimationFrame(() => requestAnimationFrame(() => resolve()))
+        );
+
+      for (let wordIdx = 0; wordIdx < words.length; wordIdx++) {
+        // Hold frame — capture once, play back for full hold duration
+        track.style.transform = `translateY(${-(wordIdx * WORD_H)}px)`;
+        await raf();
+        const holdUrl = await toPng(el, { pixelRatio: 2, cacheBust: true });
+        frames.push({ dataUrl: holdUrl, durationMs: speed * 1000 });
+
+        // Slide frames with cubic easing
+        for (let f = 1; f <= slideFrameCount; f++) {
+          const t = f / slideFrameCount;
+          const eased = easeInOutCubic(t);
+          const ty = -(wordIdx * WORD_H) - eased * WORD_H;
           track.style.transform = `translateY(${ty}px)`;
-
-          await new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r)));
-
-          const dataUrl = await toPng(el, { pixelRatio: 2, cacheBust: true });
-          const img = new Image();
-          await new Promise<void>((resolve) => {
-            img.onload = () => resolve();
-            img.src = dataUrl;
-          });
-
-          gif.addFrame(img, {
-            delay: f < holdFrames
-              ? Math.round((speed * 1000) / holdFrames)
-              : Math.round(TRANSITION_MS / (framesPerWord - holdFrames)),
-            copy: true,
-          });
+          await raf();
+          const slideUrl = await toPng(el, { pixelRatio: 2, cacheBust: true });
+          frames.push({ dataUrl: slideUrl, durationMs: TRANSITION_MS / slideFrameCount });
         }
       }
 
-      // Restore styles
+      // Restore DOM immediately after capture
       track.style.transition = origTransition;
       track.style.transform = origTransform;
+      el.style.borderRadius = origBorderRadius;
+      el.style.border = origBorder;
 
-      const blob: Blob = await new Promise((resolve) => {
-        gif.on("finished", resolve);
-        gif.render();
+      // --- Phase 2: Record frames to WebM ---
+      const canvas = document.createElement("canvas");
+      canvas.width = w;
+      canvas.height = h;
+      const ctx = canvas.getContext("2d")!;
+
+      const stream = canvas.captureStream(fps);
+      const mimeType = MediaRecorder.isTypeSupported("video/webm;codecs=vp9")
+        ? "video/webm;codecs=vp9"
+        : "video/webm";
+      const recorder = new MediaRecorder(stream, {
+        mimeType,
+        videoBitsPerSecond: 5_000_000,
       });
+
+      const chunks: Blob[] = [];
+      recorder.ondataavailable = (e) => {
+        if (e.data.size > 0) chunks.push(e.data);
+      };
+      const recordingDone = new Promise<Blob>((resolve) => {
+        recorder.onstop = () => resolve(new Blob(chunks, { type: mimeType }));
+      });
+
+      recorder.start();
+
+      // Play each frame onto the canvas at the correct pace
+      for (const frame of frames) {
+        const img = new Image();
+        await new Promise<void>((resolve) => {
+          img.onload = () => resolve();
+          img.src = frame.dataUrl;
+        });
+        ctx.drawImage(img, 0, 0, w, h);
+        await new Promise((r) => setTimeout(r, frame.durationMs));
+      }
+
+      recorder.stop();
+      const blob = await recordingDone;
 
       const url = URL.createObjectURL(blob);
       const link = document.createElement("a");
-      link.download = "Phase2_Rolodex.gif";
+      link.download = "Phase2_Rolodex.webm";
       link.href = url;
       link.click();
       URL.revokeObjectURL(url);
     } catch (err) {
-      console.error("GIF export failed:", err);
+      console.error("Video export failed:", err);
     } finally {
       setIsExporting(false);
       setIsPlaying(true);
@@ -365,12 +401,12 @@ export function RolodexBuilder() {
           {(words.length * speed).toFixed(1)}s per cycle
         </p>
         <button
-          onClick={exportGif}
+          onClick={exportVideo}
           disabled={isExporting || words.length < 2}
           className="flex items-center gap-2 rounded-lg bg-abyss px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-indigo disabled:opacity-50"
         >
           <Download className="h-4 w-4" />
-          {isExporting ? "Rendering GIF..." : "Export GIF"}
+          {isExporting ? "Rendering..." : "Export Video"}
         </button>
       </div>
     </div>
