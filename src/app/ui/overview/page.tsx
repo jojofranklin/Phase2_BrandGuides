@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { PageHeader } from "@/components/page-header";
 
 const sections = [
@@ -87,9 +88,9 @@ export default function UIOverviewPage() {
                   <p className="text-sm font-medium text-foreground">Copy the Phase2_ theme</p>
                   <p className="text-xs text-muted-foreground">
                     Grab the CSS variables from the{" "}
-                    <a href="/ui/theme" className="text-cyan underline underline-offset-2">
+                    <Link href="/ui/theme" className="text-cyan underline underline-offset-2">
                       Theme page
-                    </a>
+                    </Link>
                   </p>
                 </div>
               </div>
@@ -104,9 +105,9 @@ export default function UIOverviewPage() {
           </div>
           <p className="text-xs text-muted-foreground mt-3">
             See the full{" "}
-            <a href="/ui/installation" className="text-cyan underline underline-offset-2">
+            <Link href="/ui/installation" className="text-cyan underline underline-offset-2">
               Installation guide
-            </a>{" "}
+            </Link>{" "}
             for details.
           </p>
         </section>
@@ -119,7 +120,7 @@ export default function UIOverviewPage() {
           </h2>
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {sections.map((s) => (
-              <a
+              <Link
                 key={s.title}
                 href={s.href}
                 className="group rounded-xl border border-border p-5 transition-colors hover:border-cyan/30 hover:bg-cyan/5"
@@ -130,7 +131,7 @@ export default function UIOverviewPage() {
                 <p className="text-xs text-muted-foreground leading-relaxed">
                   {s.description}
                 </p>
-              </a>
+              </Link>
             ))}
           </div>
         </section>
