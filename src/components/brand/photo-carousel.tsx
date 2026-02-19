@@ -2,6 +2,8 @@
 
 import { useRef, useState, useEffect, useCallback } from "react";
 
+const basePath = process.env.NEXT_PUBLIC_BASE_PATH || "";
+
 type Photo = {
   src: string;
   alt: string;
@@ -9,20 +11,20 @@ type Photo = {
 };
 
 const photos: Photo[] = [
-  { src: "/photos/team-group-holiday.jpg", alt: "Phase2 team at holiday gathering", category: "Culture" },
-  { src: "/photos/earth-space.jpg", alt: "Earth from space with city lights", category: "Abstract" },
-  { src: "/photos/devs-laptops.jpg", alt: "Developers working side by side", category: "Collaboration" },
-  { src: "/photos/whiteboard-presenting.jpg", alt: "Team member presenting at whiteboard", category: "Leadership" },
-  { src: "/photos/golden-hour-coworkers.jpg", alt: "Coworkers in golden hour light", category: "Culture" },
-  { src: "/photos/speaker-microphone.jpg", alt: "Speaker addressing the team", category: "Leadership" },
-  { src: "/photos/pair-discussing.jpg", alt: "Pair discussing at laptop", category: "Collaboration" },
-  { src: "/photos/face-closeup.jpg", alt: "Close-up portrait in warm light", category: "Abstract" },
-  { src: "/photos/portrait-smiling.jpg", alt: "Team member smiling at conference", category: "Culture" },
-  { src: "/photos/colleagues-meeting.jpg", alt: "Colleagues in a meeting room", category: "Collaboration" },
-  { src: "/photos/team-working.jpg", alt: "Team members working together", category: "Collaboration" },
-  { src: "/photos/laughing-at-laptop.jpg", alt: "Person laughing while working", category: "Culture" },
-  { src: "/photos/dev-at-table.jpg", alt: "Developer at dinner event", category: "Culture" },
-  { src: "/photos/focused-coding.jpg", alt: "Focused developer behind laptop", category: "Focus" },
+  { src: `${basePath}/photos/team-group-holiday.jpg`, alt: "Phase2 team at holiday gathering", category: "Culture" },
+  { src: `${basePath}/photos/earth-space.jpg`, alt: "Earth from space with city lights", category: "Abstract" },
+  { src: `${basePath}/photos/devs-laptops.jpg`, alt: "Developers working side by side", category: "Collaboration" },
+  { src: `${basePath}/photos/whiteboard-presenting.jpg`, alt: "Team member presenting at whiteboard", category: "Leadership" },
+  { src: `${basePath}/photos/golden-hour-coworkers.jpg`, alt: "Coworkers in golden hour light", category: "Culture" },
+  { src: `${basePath}/photos/speaker-microphone.jpg`, alt: "Speaker addressing the team", category: "Leadership" },
+  { src: `${basePath}/photos/pair-discussing.jpg`, alt: "Pair discussing at laptop", category: "Collaboration" },
+  { src: `${basePath}/photos/face-closeup.jpg`, alt: "Close-up portrait in warm light", category: "Abstract" },
+  { src: `${basePath}/photos/portrait-smiling.jpg`, alt: "Team member smiling at conference", category: "Culture" },
+  { src: `${basePath}/photos/colleagues-meeting.jpg`, alt: "Colleagues in a meeting room", category: "Collaboration" },
+  { src: `${basePath}/photos/team-working.jpg`, alt: "Team members working together", category: "Collaboration" },
+  { src: `${basePath}/photos/laughing-at-laptop.jpg`, alt: "Person laughing while working", category: "Culture" },
+  { src: `${basePath}/photos/dev-at-table.jpg`, alt: "Developer at dinner event", category: "Culture" },
+  { src: `${basePath}/photos/focused-coding.jpg`, alt: "Focused developer behind laptop", category: "Focus" },
 ];
 
 export function PhotoCarousel() {

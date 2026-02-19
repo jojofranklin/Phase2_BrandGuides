@@ -2,6 +2,8 @@
 
 import { useState } from "react";
 
+const basePath = process.env.NEXT_PUBLIC_BASE_PATH || "";
+
 type IconItem = {
   name: string;
   file: string;
@@ -40,7 +42,7 @@ const categories = [
 
 function downloadSvg(file: string, name: string) {
   const link = document.createElement("a");
-  link.href = `/icons/${file}`;
+  link.href = `${basePath}/icons/${file}`;
   link.download = `Phase2_Icon_${name.replace(/[^a-zA-Z0-9]/g, "_")}.svg`;
   document.body.appendChild(link);
   link.click();
@@ -120,7 +122,7 @@ export function IconGrid() {
             <div className="w-16 h-16 mb-3 transition-transform group-hover:scale-110">
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
-                src={`/icons/${icon.file}`}
+                src={`${basePath}/icons/${icon.file}`}
                 alt={icon.name}
                 className="w-full h-full"
               />

@@ -2,6 +2,8 @@
 
 import { Download } from "lucide-react";
 
+const basePath = process.env.NEXT_PUBLIC_BASE_PATH || "";
+
 const GRADIENT = "linear-gradient(90deg, #9AE4FF 21%, #14A3D6 51%, #1A386F 100%)";
 
 // Underscore proportions from Figma
@@ -132,7 +134,7 @@ const icons: LogoVariant[] = [
 
 function downloadFile(filename: string) {
   const link = document.createElement("a");
-  link.href = `/logos/${filename}`;
+  link.href = `${basePath}/logos/${filename}`;
   link.download = filename;
   document.body.appendChild(link);
   link.click();
