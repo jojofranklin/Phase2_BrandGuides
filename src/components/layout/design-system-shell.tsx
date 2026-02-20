@@ -1,5 +1,6 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import { navigation } from "@/lib/navigation";
 import { useDarkMode } from "@/hooks/use-dark-mode";
@@ -10,6 +11,12 @@ export function DesignSystemShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const router = useRouter();
   const { isDark, toggle: toggleDark } = useDarkMode();
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+
+  // Close sidebar on route change (mobile nav)
+  useEffect(() => {
+    setSidebarOpen(false);
+  }, [pathname]);
 
   const activeTab = pathname.startsWith("/ui") ? "ui" : "brand";
   const currentNav = navigation.find((t) => t.id === activeTab);
@@ -28,7 +35,11 @@ export function DesignSystemShell({ children }: { children: React.ReactNode }) {
 
   return (
     <div className="flex h-screen overflow-hidden bg-background">
-      <Sidebar groups={currentNav?.groups ?? []} />
+      <Sidebar
+        groups={currentNav?.groups ?? []}
+        open={sidebarOpen}
+        onClose={() => setSidebarOpen(false)}
+      />
       <div className="flex flex-1 flex-col overflow-hidden">
         <Header
           activeTab={activeTab}
@@ -36,9 +47,10 @@ export function DesignSystemShell({ children }: { children: React.ReactNode }) {
           onTabChange={handleTabChange}
           isDark={isDark}
           onToggleDark={toggleDark}
+          onToggleSidebar={() => setSidebarOpen((o) => !o)}
         />
         <main className="flex-1 overflow-y-auto">
-          <div className={`mx-auto ${contentMaxWidth} px-8 py-10`}>
+          <div className={`mx-auto ${contentMaxWidth} px-4 py-6 md:px-8 md:py-10`}>
             {children}
           </div>
         </main>

@@ -126,7 +126,7 @@ export default function UIOverviewPage() {
                 className="group rounded-xl border border-border p-5 transition-colors hover:border-cyan/30 hover:bg-cyan/5"
               >
                 <h3 className="font-heading text-sm font-bold text-foreground mb-1">
-                  {s.title}<span className="text-cyan">_</span>
+                  {s.title}
                 </h3>
                 <p className="text-xs text-muted-foreground leading-relaxed">
                   {s.description}
